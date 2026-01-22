@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+
+# if [ -z ${JUSTIN_PROCESSORS} ]; then
+#   JUSTIN_PROCESSORS=1
+# fi
+
+# echo "Justin processors: ${JUSTIN_PROCESSORS}"
+
+# export TF_NUM_THREADS=${JUSTIN_PROCESSORS}   
+# export OPENBLAS_NUM_THREADS=${JUSTIN_PROCESSORS} 
+# export JULIA_NUM_THREADS=${JUSTIN_PROCESSORS} 
+# export MKL_NUM_THREADS=${JUSTIN_PROCESSORS} 
+# export NUMEXPR_NUM_THREADS=${JUSTIN_PROCESSORS} 
+# export OMP_NUM_THREADS=${JUSTIN_PROCESSORS}  
+  
+# echo "Will use justin-get-file"
+# DID_PFN_RSE=`$JUSTIN_PATH/justin-get-file`
+# if [ "${DID_PFN_RSE}" == "" ] ; then
+#   echo "Could not get file"
+#   exit 0
+# fi
+# echo $DID_PFN_RSE
+
+source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+setup python v3_9_15
+source /exp/dune/data/users/calcuttj/snakemake_venv/bin/activate
+python -m snakemake --cores 1 --config nfiles=5 \
+  --snakefile /exp/dune/app/users/calcuttj/workflow/snakemake-dev/workflow/Snakefile \
+  all
+
+
+echo "Done"
+echo "$pfn" > justin-processed-pfns.txt
