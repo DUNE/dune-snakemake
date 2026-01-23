@@ -24,11 +24,20 @@
 
 source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
 setup python v3_9_15
-source /exp/dune/data/users/calcuttj/snakemake_venv/bin/activate
-python -m snakemake --cores 1 --config nfiles=5 \
-  --snakefile /exp/dune/app/users/calcuttj/workflow/snakemake-dev/workflow/Snakefile \
+
+if [ -z ${OnGrid} ]; then
+  source /exp/dune/data/users/calcuttj/snakemake_venv/bin/activate
+else
+  pip install --user snakemake 'pulp<2.8'
+fi
+
+
+python -m snakemake --cores 1 --config nfiles=${SnakemakeNFiles:-1} \
+  --snakefile ${SnakemakeDir}/workflow/Snakefile \
   all
 
 
-echo "Done"
-echo "$pfn" > justin-processed-pfns.txt
+echo "Done running snakemake"
+
+# did=$(echo ${DID_PFN_RSE} | cut -f1 -d' ')
+# echo $did > justin-processed-dids.txt

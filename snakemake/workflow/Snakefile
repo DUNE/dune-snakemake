@@ -1,29 +1,40 @@
+from viper import functions as vf
+
 module basic_lar:
     snakefile:
         "rules/basiclar.smk"
 
+module control:
+    snakefile: "rules/control.smk"
+
+
+
+
 config.setdefault("n", "1")
 config.setdefault("nfiles", "1")
+use rule * from control
+use rule jgf from control with:
+    params:
+        nfiles=config['nfiles']
 
-# shell.prefix(
-#     """
-#     set +euo pipefail
-#     echo "Setting up dune UPS"
-#     source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
-#     echo "Setting up dunesw"
-#     setup dunesw v10_14_00d00 -q e26:prof
-#     set -euo pipefail
-#     """
-# )
+dunesw_prefix = """
+    set +euo pipefail
+    echo "Setting up dune UPS"
+    source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+    echo "Setting up dunesw"
+    setup dunesw v10_14_00d00 -q e26:prof
+    set -euo pipefail
+"""
+
 
 use rule run_lar_null_in_art_out from basic_lar as gen_cosmics with:
     output:
         "cosmics.root"
     params:
+        prefix=dunesw_prefix,
         n=config["n"],
         fcl="prod_cosmics_protodunehd.fcl",
         extra="--no-memcheck --no-timing --no-trace"
-
 
 use rule run_lar_single_in_art_out from basic_lar as g4 with:
     output:
@@ -31,8 +42,9 @@ use rule run_lar_single_in_art_out from basic_lar as g4 with:
     input:
         "cosmics.root"
     params:
+        prefix=dunesw_prefix,
         n=1,
-        fcl="resources/run_g4_only.fcl",
+        fcl=vf.local_file(workflow, "resources/run_g4_only.fcl"),
         extra="--no-memcheck --no-timing --no-trace"
 
 use rule run_lar_single_in_dump_text from basic_lar as dump_g4 with:
@@ -40,6 +52,7 @@ use rule run_lar_single_in_dump_text from basic_lar as dump_g4 with:
     input:
         "g4_cosmics.root"
     params:
+        prefix=dunesw_prefix,
         n="-1",
         fcl="eventdump.fcl",
         extra="--no-memcheck --no-timing --no-trace"
@@ -49,36 +62,36 @@ use rule run_lar_single_in_dump_text from basic_lar as dump_gen with:
     input:
         "cosmics.root"
     params:
+        prefix=dunesw_prefix,
         n="-1",
         fcl="eventdump.fcl",
         extra="--no-memcheck --no-timing --no-trace"
 
-rule jgf:
+rule test:
     output:
-        "justin_input_files.txt"
+        "test.txt"
     shell:
         """
-        touch {output}
-
-        for ((i=0; i < {config[nfiles]}; i++)); do
-            echo "Calling justin get file -- $i"
-            DID_PFN_RSE=$($JUSTIN_PATH/justin-get-file)
-            if [ "$DID_PFN_RSE" == "" ] ; then
-                echo "Could not get file. Exiting loop"
-                break
-            fi
-            echo $DID_PFN_RSE >> {output}
-            
-        done
-
-
+        echo "test" > {output}
         """
+use rule run_lar_list_in_tfile_out from basic_lar as pdhdana with:
+    output: "pdhdana.root"
+    input:
+        vf.justin_input_files
+    params:
+        prefix=dunesw_prefix,
+        n="-1",
+        fcl=vf.local_file(workflow, "resources/pdhd_ana_MC_nosce_noreco.fcl"),
+        extra="--no-memcheck --no-timing --no-trace"
+
+
+
+requested = vf.extract_output(
+    rules.test,
+)
+use rule Processing from control with:
+    input: requested
 
 rule all:
     input:
-        "justin_input_files.txt"
-    shell:
-        """
-        echo "Files in {input}:"
-        cat {input}
-        """
+        vf.make_check_jgf(rules, checkpoints)
