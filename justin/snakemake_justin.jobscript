@@ -29,7 +29,14 @@ if [ -n ${SnakemakeApptainerCleanEnv:-""} ]; then
   echo "Appending --cleanenv"
 fi
 
+if [ -n ${SnakemakeConfig:-""} ]; then
+  SnakemakeOptions+="--configfile ${SnakemakeConfig} "
+  echo "Using ${SnakemakeConfig}"
+fi
+
+
 python -m snakemake -q --cores 1 \
+  ${SnakemakeOptions} \
   ${SnakemakeApptainerFlag} \
   --config nfiles=${SnakemakeNFiles:-1} \
   --config UserWorkflow=${UserWorkflow:-"ToInclude.smk"} \

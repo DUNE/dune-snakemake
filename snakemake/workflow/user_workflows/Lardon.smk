@@ -9,7 +9,7 @@
 #         ls -lht temp_input.h5
 #         """
 rule test:
-    container: "/cvmfs/fifeuser2.opensciencegrid.org/sw/dune/2edc51222b88969999a17f5d2d7771937b9b7e50/lardon_sandbox"
+    container: config["lardon_container"] #"/cvmfs/fifeuser2.opensciencegrid.org/sw/dune/2edc51222b88969999a17f5d2d7771937b9b7e50/lardon_sandbox"
     input:
         # "temp_input.h5"
         vf.justin_input_files
