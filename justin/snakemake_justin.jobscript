@@ -5,13 +5,32 @@ setup python v3_9_15
 if [ -z ${OnGrid} ]; then
   source /exp/dune/data/users/calcuttj/snakemake_venv/bin/activate
 else
-  pip install --user snakemake 'pulp<2.8'
+  setup gcc v12_1_0
+  echo "Pip installing snakemake"
+  # python -m venv snakemake_venv
+  # source snakemake_venv/bin/activate
+  # echo $VIRTUAL_ENV
+  pip install -q --user snakemake 'pulp<2.8'
+  python -m snakemake --version
 fi
 
 Snakefile=${Snakefile:-"workflow/Snakefile"}
 echo $Snakefile
 
-python -m snakemake --cores 1 \
+if [ -z ${SnakemakeUseApptainer} ]; then
+  SnakemakeApptainerFlag=""
+else
+  SnakemakeApptainerFlag="--use-singularity "
+  echo "Will use singularity"
+fi
+
+if [ -n ${SnakemakeApptainerCleanEnv:-""} ]; then
+  SnakemakeApptainerFlag+="--singularity-args=\"--cleanenv\" "
+  echo "Appending --cleanenv"
+fi
+
+python -m snakemake -q --cores 1 \
+  ${SnakemakeApptainerFlag} \
   --config nfiles=${SnakemakeNFiles:-1} \
   --config UserWorkflow=${UserWorkflow:-"ToInclude.smk"} \
   --snakefile ${SnakemakeDir}/${Snakefile} \

@@ -25,15 +25,18 @@ checkpoint jgf:
 
 rule NoJustinFiles:
     output:
-        "nojustinfiles.snakebite"
+        njf="nojustinfiles.snakebite",
     shell:
         """
-        echo "Retrieved no files from justin. Exiting safely" > {output}
+        echo "Retrieved no files from justin. Exiting safely" > {output.njf}
+        touch justin-processed-dids.txt
         """
 rule Processing:
     output:
-        "processed.snakebite"
+        hook="processed.snakebite",
+        processed="justin-processed-dids.txt"
     shell:
         """
-        touch {output}
+        cp justin_input_dids.txt {output.processed}
+        touch {output.hook}
         """
