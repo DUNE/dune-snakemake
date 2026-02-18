@@ -1,9 +1,11 @@
 rule test:
     output:
-        "test.txt"
+        a="test.txt",
+        b="test2.txt"
     shell:
         """
-        echo "test" > {output}
+        echo "test" > {output.a}
+        touch {output.b}
         """
 
 final_stages = [

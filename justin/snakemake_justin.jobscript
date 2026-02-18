@@ -35,14 +35,16 @@ if [ -n ${SnakemakeConfig:-""} ]; then
 fi
 
 
-python -m snakemake -q --cores 1 \
+# echo \
+  python -m snakemake -q --cores ${SnakemakeCores:-1} \
   ${SnakemakeOptions} \
   ${SnakemakeApptainerFlag} \
   --config nfiles=${SnakemakeNFiles:-1} \
-  --config UserWorkflow=${UserWorkflow:-"ToInclude.smk"} \
+    ProcessingStyle=${SnakemakeProcessingStyle:-"bulk"} \
+    UserWorkflow=${UserWorkflow:-"ToInclude.smk"} \
   --snakefile ${SnakemakeDir}/${Snakefile} \
   all
-
+#
 
 echo "Done running snakemake"
 

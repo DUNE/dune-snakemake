@@ -1,9 +1,10 @@
-from viper import functions as vf
+from viper import functions as utils
 
 module control:
     snakefile: "rules/control.smk"
 
-config.setdefault("nfiles", "1")
+# config.setdefault("nfiles", "1")
+# config.setdefault("ProcessingStyle", "bulk")
 use rule * from control
 use rule jgf from control with:
     params:
@@ -15,14 +16,13 @@ use rule jgf from control with:
 middle_layer=config["UserWorkflow"]
 include: middle_layer
 
-## 'final_stages' is defined in the middle_layer, we extract the output here.
-requested = vf.extract_output(
-    *final_stages
-)
+processing_style=config["ProcessingStyle"]
 
-## Depending on justin-get-file behavior, will direct rule 'all'
-use rule Processing from control with:
-    input: requested
 rule all:
     input:
-        vf.make_check_jgf(rules, checkpoints)
+        utils.make_check_jgf(
+            checkpoints,
+            final_stages,
+            expand,
+            processing_style=processing_style
+        )

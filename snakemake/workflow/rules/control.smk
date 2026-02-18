@@ -23,20 +23,42 @@ checkpoint jgf:
         done
         """
 
-rule NoJustinFiles:
+rule split_justin_inputs:
+    input:
+        "justin_input_pfns.txt"
     output:
-        njf="nojustinfiles.snakebite",
+        "justin_pfn_{i}.txt"
+    params:
+        # Access the wildcard value, convert it to an integer, and perform math
+        lineno = lambda wildcards: int(wildcards.i) + 1,
     shell:
-        """
-        echo "Retrieved no files from justin. Exiting safely" > {output.njf}
-        touch justin-processed-dids.txt
-        """
-rule Processing:
+        '''
+        echo "Lineno: {params.lineno}"
+        echo "output: {output}"
+        head -n {params.lineno} {input} | tail -n 1 > {output}
+        '''
+
+# rule NoJustinFiles:
+#     output:
+#         njf="nojustinfiles.snakebite",
+#     shell:
+#         """
+#         echo "Retrieved no files from justin. Exiting safely" > {output.njf}
+#         touch justin-processed-dids.txt
+#         """
+# rule Processing:
+#     output:
+#         hook="processed.snakebite",
+#         processed="justin-processed-dids.txt"
+#     shell:
+#         """
+#         cp justin_input_dids.txt {output.processed}
+#         touch {output.hook}
+#         """
+rule LogInputFiles:
+    input:
+        'justin_input_dids.txt'
     output:
-        hook="processed.snakebite",
-        processed="justin-processed-dids.txt"
+        'justin-processed-dids.txt'
     shell:
-        """
-        cp justin_input_dids.txt {output.processed}
-        touch {output.hook}
-        """
+        'cp justin_input_dids.txt {output}'
