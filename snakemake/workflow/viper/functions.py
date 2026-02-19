@@ -1,21 +1,35 @@
+import os 
+
 def hello_world():
     print("Hello world")
 
-# def make_check_jgf(checkpoints, final_stages, expand):
+def make_check_jgf(checkpoints, final_stages, expand, glob_wildcards):
+    def check_jgf(wildcards):
+        checkpoint_output = checkpoints.jgf.get().output[0]
 
-#     def check_jgf(wildcards):
-#         with checkpoints.jgf.get().output[0].open() as f:
-#             nlines = sum(1 for line in f)
-#         if nlines == 0:
-#             return []
-#         else:
-#             output = []
-#             for tar in final_stages:
-#                 for out in tar.output:
-#                     output += expand(out, i=[i for i in range(nlines)])
-#                 print(output)
-#             return output + ['justin-processed-dids.txt']
-#     return check_jgf
+        output = []
+        jgf_instances = glob_wildcards(os.path.join('justin_input_files', 'justin_pfn_{i}.txt')).i
+        print(jgf_instances)
+        for tar in final_stages:
+            for out in tar.output:
+                output += expand(out, i=jgf_instances)
+            print(output)
+        if len(output) == 0:
+            return []
+        else:
+            return output # + ['justin-processed-dids.txt']
+    return check_jgf
+
+def jgf_expand_names(inputs, checkpoints, expand, glob_wildcards):
+    def check_jgf(wildcards):
+        checkpoint_output = checkpoints.jgf.get().output[0]
+        results = []
+        jgf_instances = glob_wildcards(os.path.join('justin_input_files', 'justin_pfn_{iJGF}.txt')).iJGF
+        for tar in inputs:
+            results += expand(tar, iJGF=jgf_instances)
+        print(results)
+        return results
+    return check_jgf
 
 def local_file(workflow, f):
     import os
