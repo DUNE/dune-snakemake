@@ -16,13 +16,24 @@ use rule jgf from control with:
 middle_layer=config["UserWorkflow"]
 include: middle_layer
 
-processing_style=config["ProcessingStyle"]
+def check_jgf(wildcards):
+    with checkpoints.jgf.get().output[0].open() as f:
+        nlines = sum(1 for line in f)
+    if nlines == 0:
+        return []
+    else:
+        output = []
+        for tar in final_stages:
+            for out in tar.output:
+                output += expand(out, i=[i for i in range(nlines)])
+            print(output)
+        return output + ['justin-processed-dids.txt']
 
 rule all:
     input:
-        utils.make_check_jgf(
-            checkpoints,
-            final_stages,
-            expand,
-            processing_style=processing_style
-        )
+        check_jgf
+        # utils.make_check_jgf(
+        #     checkpoints,
+        #     final_stages,
+        #     expand,
+        # )

@@ -75,8 +75,42 @@ use rule run_lar_null_in_art_out from basic_lar as gen_cosmics with:
 # final_stages = [
 #     rules.dump_gen,
 # ]
+use rule run_lar_list_in_tfile_out from basic_lar as pdhdana with:
+    output: "pdhdana_{i}.root"
+    benchmark: "asdf_{i}"
+    input:
+        # utils.justin_input_files
+        "justin_pfn_{i}.txt"
+    params:
+        prefix=dunesw_prefix,
+        n="1",
+        fcl=utils.local_file(workflow, "resources/pdhd_ana_MC_nosce_noreco.fcl"),
+        extra="--no-memcheck --no-timing --no-trace"
+
+# checkpoint trigger_checkpoint:
+#     input:
+#         "pdhdana_{i}.root"
+#     output:
+#         touch("checkpoint_{i}.txt")
+
+# def aggregate_input(wildcards):
+#     checkpoint_output = checkpoints.trigger_checkpoint.get(**wildcards).output[0]
+#     return expand(
+#         "pdhdana_{i}.root",
+#         i=glob_wildcards("checkpoint_{i}.root").i
+#     )
+
+# rule merge:
+#     output: "merged.root"
+#     input:
+#         aggregate_input
+#     shell:
+#         "hadd {output} {input}"
+
 
 final_stages = [
     #rules.test
-    rules.gen_cosmics,
+    # rules.gen_cosmics,
+    rules.pdhdana
+    # rules.merge
 ]

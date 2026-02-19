@@ -30,7 +30,7 @@ use rule run_lar_single_in_art_out from basic_lar as g4 with:
     params:
         prefix=dunesw_prefix,
         n=1,
-        fcl=vf.local_file(workflow, "resources/run_g4_only.fcl"),
+        fcl=utils.local_file(workflow, "resources/run_g4_only.fcl"),
         extra="--no-memcheck --no-timing --no-trace"
 
 use rule run_lar_single_in_dump_text from basic_lar as dump_g4 with:
@@ -55,13 +55,14 @@ use rule run_lar_single_in_dump_text from basic_lar as dump_gen with:
 use rule run_lar_list_in_tfile_out from basic_lar as pdhdana with:
     output: "pdhdana.root"
     input:
-        vf.justin_input_files
+        utils.justin_input_files
     params:
         prefix=dunesw_prefix,
         n="-1",
-        fcl=vf.local_file(workflow, "resources/pdhd_ana_MC_nosce_noreco.fcl"),
+        fcl=utils.local_file(workflow, "resources/pdhd_ana_MC_nosce_noreco.fcl"),
         extra="--no-memcheck --no-timing --no-trace"
 
 final_stages = [
-    rules.dump_gen,
+    # rules.dump_gen,
+    rules.pdhdana
 ]

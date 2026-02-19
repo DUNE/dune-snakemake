@@ -23,7 +23,7 @@ checkpoint jgf:
         done
         """
 
-rule split_justin_inputs:
+checkpoint split_justin_inputs:
     input:
         "justin_input_pfns.txt"
     output:
