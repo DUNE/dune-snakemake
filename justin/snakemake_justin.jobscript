@@ -34,9 +34,12 @@ if [ -n ${SnakemakeConfig:-""} ]; then
   echo "Using ${SnakemakeConfig}"
 fi
 
+if [ -z ${SnakemakeVerbose} ]; then
+  SnakemakeOptions+="-q "
+fi
 
 # echo \
-  python -m snakemake -q --cores ${SnakemakeCores:-1} \
+  python -m snakemake --cores ${SnakemakeCores:-1} \
   ${SnakemakeOptions} \
   ${SnakemakeApptainerFlag} \
   --config nfiles=${SnakemakeNFiles:-1} \
