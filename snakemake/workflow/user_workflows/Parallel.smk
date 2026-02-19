@@ -37,7 +37,7 @@ use rule run_lar_list_in_tfile_out from basic_lar as pdhdana with:
     output: "pdhdana_{iJGF}.root"
     benchmark: "asdf_{iJGF}"
     input:
-        "justin_input_files/justin_pfn_{iJGF}.txt"
+        input_list="justin_input_files/justin_pfn_{iJGF}.txt"
     params:
         prefix=dunesw_prefix,
         n="1",

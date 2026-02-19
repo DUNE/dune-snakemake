@@ -1,0 +1,4 @@
+#include "run_ta_threshold.fcl"
+
+process_name: RunTAchangemeMADC
+physics.producers.tamakerTPC.taalg.adc_threshold: changeme000000

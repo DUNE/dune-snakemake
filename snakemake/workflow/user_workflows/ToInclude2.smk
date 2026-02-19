@@ -26,7 +26,7 @@ use rule run_lar_single_in_art_out from basic_lar as g4 with:
     output:
         "g4_cosmics.root"
     input:
-        "cosmics.root"
+        input_file="cosmics.root"
     params:
         prefix=dunesw_prefix,
         n=1,
@@ -36,7 +36,7 @@ use rule run_lar_single_in_art_out from basic_lar as g4 with:
 use rule run_lar_single_in_dump_text from basic_lar as dump_g4 with:
     output: "g4_cosmics.txt"
     input:
-        "g4_cosmics.root"
+        input_file="g4_cosmics.root"
     params:
         prefix=dunesw_prefix,
         n="-1",
@@ -46,7 +46,7 @@ use rule run_lar_single_in_dump_text from basic_lar as dump_g4 with:
 use rule run_lar_single_in_dump_text from basic_lar as dump_gen with:
     output: "cosmics.txt"
     input:
-        "cosmics.root"
+        input_file="cosmics.root"
     params:
         prefix=dunesw_prefix,
         n="-1",
@@ -55,7 +55,7 @@ use rule run_lar_single_in_dump_text from basic_lar as dump_gen with:
 use rule run_lar_list_in_tfile_out from basic_lar as pdhdana with:
     output: "pdhdana.root"
     input:
-        utils.justin_input_files
+        input_list=utils.justin_input_files
     params:
         prefix=dunesw_prefix,
         n="-1",

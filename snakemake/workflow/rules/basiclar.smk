@@ -16,7 +16,7 @@ rule run_lar_single_in_art_out:
     shell:
         """
         {params.prefix}
-        lar -n {params.n} -c {params.fcl} -o {output} {params.extra} {input}
+        lar -n {params.n} -c {params.fcl} -o {output} {params.extra} {input.input_file}
         """
 rule run_lar_list_in_tfile_out:
     benchmark:
@@ -26,7 +26,17 @@ rule run_lar_list_in_tfile_out:
     shell:
         """
         {params.prefix}
-        lar -n {params.n} -c {params.fcl} -T {output} {params.extra} -S {input}
+        lar -n {params.n} -c {params.fcl} -T {output} {params.extra} -S {input.input_list}
+        """
+rule run_lar_list_in_art_out:
+    benchmark:
+        "benchmarks/test/benchmark123.txt"
+    params:
+        prefix=""
+    shell:
+        """
+        {params.prefix}
+        lar -n {params.n} -c {params.fcl} -o {output} {params.extra} -S {input.input_list}
         """
 
 rule run_lar_single_in_dump_text:
@@ -37,5 +47,5 @@ rule run_lar_single_in_dump_text:
     shell:
         """
         {params.prefix}
-        lar -n {params.n} -c {params.fcl} {params.extra} {input} > {output}
+        lar -n {params.n} -c {params.fcl} {params.extra} {input.input_file} > {output}
         """
