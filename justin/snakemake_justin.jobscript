@@ -2,6 +2,43 @@
 source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
 setup python v3_9_15
 
+if [ -n ${ExternalJGF:-""} ] ; then
+  echo "Running justin-get-file loop external"
+
+  mkdir justin_input_files/
+
+  nfiles=0
+  for i in `seq 1 ${SnakemakeNFiles:-1}`; do
+    echo $i
+    DID_PFN_RSE=`$JUSTIN_PATH/justin-get-file`
+
+    if [ "${DID_PFN_RSE}" == "" ] ; then
+      echo "Could not get file -- exiting loop"
+      break
+    fi
+
+    echo "did_pfn_rse: ${DID_PFN_RSE}"
+
+    # THISFILE=`echo ${DID_PFN_RSE} | cut -f2 -d' '`
+    did=$(echo $DID_PFN_RSE | cut -d' ' -f1)
+    pfn=$(echo $DID_PFN_RSE | cut -d' ' -f2)
+    echo $did > justin_input_files/justin_did_$i.txt
+    echo $pfn > justin_input_files/justin_pfn_$i.txt
+    echo $THISFILE
+    nfiles=$(( nfiles + 1 ))
+  done
+
+  echo "Got $nfiles Files from justin"
+
+  if [ $nfiles -eq 0 ]; then
+    echo "Got no files. Exiting safely"
+    exit 0
+  fi
+fi
+
+
+
+
 if [ -z ${OnGrid} ]; then
   source /exp/dune/data/users/calcuttj/snakemake_venv/bin/activate
 else

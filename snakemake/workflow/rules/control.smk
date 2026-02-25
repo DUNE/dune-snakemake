@@ -6,12 +6,18 @@ checkpoint jgf:
         nfiles=1 #Default
     shell:
         """
+        set +euo pipefail
         # touch 
         mkdir justin_input_files/
         for ((i=0; i < {params.nfiles}; i++)); do
             echo "Calling justin get file -- $i"
             DID_PFN_RSE=$($JUSTIN_PATH/justin-get-file)
-            echo $?
+            jgf_exit=$?
+            echo "Exit code:" $jgf_exit
+            if [ $jgf_exit -ne 0 ]; then
+                echo "Nonzero exit from jgf. Exiting loop"
+                break
+            fi
             if [ "$DID_PFN_RSE" == "" ] ; then
                 echo "Could not get file. Exiting loop"
                 break
@@ -22,6 +28,7 @@ checkpoint jgf:
             echo $did > justin_input_files/justin_did_$i.txt
             echo $pfn > justin_input_files/justin_pfn_$i.txt
         done
+        set -euo pipefail
         """
 
 rule combine_justin_inputs:
