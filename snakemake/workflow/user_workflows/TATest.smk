@@ -1,3 +1,5 @@
+from viper import functions as utils
+import os
 module basic_lar:
     snakefile:
         "../rules/basiclar.smk"
@@ -25,27 +27,45 @@ rule make_threshold_fcl:
         """
 
 use rule run_lar_list_in_art_out from basic_lar as ta_threshold with:
-    output: "custom_ta_{thresh}.root"
-    benchmark: "bmk_{thresh}"
+    output: "custom_ta_{thresh}_{iJGF}.root"
+    benchmark: "bmk_{thresh}_{iJGF}"
     input:
-        input_list=utils.justin_input_files,
+        # input_list=utils.justin_input_files,
+        input_list="justin_input_files/justin_pfn_{iJGF}.txt",
         fcl="run_ta_threshold_custom_{thresh}M.fcl"
     shadow: 'shallow'
     params:
         prefix=dunesw_prefix,
-        n="1",
+        n="10",
         fcl=rules.make_threshold_fcl.output,
         extra="--no-timing --no-trace"
 
+justin_jobid, justin_stage, justin_wf = utils.get_justin_jobstage()
+
 rule multi_thresh:
     input:
-        expand("custom_ta_{thresh}.root", thresh=[i for i in range(1,20)])
+        utils.jgf_expand_names(
+            [f'custom_ta_{thresh}' + '_{iJGF}.root' for thresh in range(1,20)],
+            checkpoints,
+            expand,
+            glob_wildcards
+        )
     output:
-        "custom_ta_merged.tar.gz"
+        "custom_ta_merged_jjjustinjob_jsjustinstage_jwjustinwf.tar.gz".replace(
+            'justinjob', justin_jobid
+        ).replace(
+            'justinstage', justin_stage
+        ).replace('justinwf', justin_wf)
     shell:
         """
         tar -czf {output} {input}
         """
+
+rule print_env:
+    output:
+        "env.txt"
+    shell:
+        "env | tee -a env.txt"
 
 final_stages = [
     rules.multi_thresh

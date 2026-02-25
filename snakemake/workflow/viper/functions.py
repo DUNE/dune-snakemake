@@ -43,4 +43,13 @@ def extract_output(targets):
     # print(output)
     return output
 
+def get_justin_jobstage():
+    import os
+    jobid=os.environ['JUSTIN_JOBSUB_ID'].split('@')[0].replace('.', '_')
+    stageid=os.environ['JUSTIN_STAGE_ID']
+    wfid=os.environ['JUSTIN_WORKFLOW_ID']
+    return (jobid, stageid, wfid)
+    # return dict(jobid=jobid, stageid=stageid)
+
+
 justin_input_files="justin_input_pfns.txt"
