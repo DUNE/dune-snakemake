@@ -19,12 +19,10 @@ if [ -n ${ExternalJGF:-""} ] ; then
 
     echo "did_pfn_rse: ${DID_PFN_RSE}"
 
-    # THISFILE=`echo ${DID_PFN_RSE} | cut -f2 -d' '`
     did=$(echo $DID_PFN_RSE | cut -d' ' -f1)
     pfn=$(echo $DID_PFN_RSE | cut -d' ' -f2)
     echo $did > justin_input_files/justin_did_$i.txt
     echo $pfn > justin_input_files/justin_pfn_$i.txt
-    echo $THISFILE
     nfiles=$(( nfiles + 1 ))
   done
 
@@ -44,9 +42,6 @@ if [ -z ${OnGrid} ]; then
 else
   setup gcc v12_1_0
   echo "Pip installing snakemake"
-  # python -m venv snakemake_venv
-  # source snakemake_venv/bin/activate
-  # echo $VIRTUAL_ENV
   pip install -q --user snakemake 'pulp<2.8'
   python -m snakemake --version
 fi
@@ -75,15 +70,42 @@ if [ -z ${SnakemakeVerbose} ]; then
   SnakemakeOptions+="-q "
 fi
 
+# This doesn't really do anything because but it's useful as
+# an idea for potential later usage
+# SnakemakeExtraRules=""
+# if [ -n ${SnakemakePrintEnv:-""} ]; then
+#   SnakemakeExtraRules+=" print_env"
+# fi
+
 # echo \
-  python -m snakemake --cores ${SnakemakeCores:-1} \
-  ${SnakemakeOptions} \
-  ${SnakemakeApptainerFlag} \
-  --config nfiles=${SnakemakeNFiles:-1} \
-    ProcessingStyle=${SnakemakeProcessingStyle:-"bulk"} \
-    UserWorkflow=${UserWorkflow:-"ToInclude.smk"} \
-  --snakefile ${SnakemakeDir}/${Snakefile} \
-  all
+
+  snakemake_directive="""
+    --cores ${SnakemakeCores:-1} \
+    ${SnakemakeOptions} \
+    ${SnakemakeApptainerFlag} \
+    --config nfiles=${SnakemakeNFiles:-1} \
+             UserWorkflow=${UserWorkflow:-"ToInclude.smk"} \
+    --snakefile ${SnakemakeDir}/${Snakefile} \
+    all LogInputFiles
+  """
+  echo "running $snakemake_directive"
+  if [ -z $SnakemakeSkipDAG ]; then
+    python -m snakemake --dag $snakemake_directive > smk_dag.dot
+  fi
+  python -m snakemake $snakemake_directive
+  # python -m snakemake --cores ${SnakemakeCores:-1} \
+  # ${SnakemakeOptions} \
+  # ${SnakemakeApptainerFlag} \
+  # --config nfiles=${SnakemakeNFiles:-1} \
+  #   UserWorkflow=${UserWorkflow:-"ToInclude.smk"} \
+  # --snakefile ${SnakemakeDir}/${Snakefile} \
+  # all
+
+  snakemake_exit=$?
+  if [ $snakemake_exit -ne 0 ]; then
+    echo "Error in running snakemake. Exiting with ${snakemake_exit}"
+    exit ${snakemake_exit}
+  fi
 #
 
 echo "Done running snakemake"

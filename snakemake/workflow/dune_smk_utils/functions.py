@@ -20,11 +20,11 @@ def make_check_jgf(checkpoints, final_stages, expand, glob_wildcards):
             return output # + ['justin-processed-dids.txt']
     return check_jgf
 
-def jgf_expand_names(inputs, checkpoints, expand, glob_wildcards):
+def jgf_expand_names(inputs, expand, glob_wildcards):
     def check_jgf(wildcards):
-        checkpoint_output = checkpoints.jgf.get().output[0]
         results = []
         jgf_instances = glob_wildcards(os.path.join('justin_input_files', 'justin_pfn_{iJGF}.txt')).iJGF
+        print('jgf:', jgf_instances)
         for tar in inputs:
             results += expand(tar, iJGF=jgf_instances)
         print(results)
@@ -32,7 +32,6 @@ def jgf_expand_names(inputs, checkpoints, expand, glob_wildcards):
     return check_jgf
 
 def local_file(workflow, f):
-    import os
     return os.path.join(workflow.basedir, f)
 
 def extract_output(targets):
@@ -44,7 +43,6 @@ def extract_output(targets):
     return output
 
 def get_justin_jobstage():
-    import os
     jobid=os.environ['JUSTIN_JOBSUB_ID'].split('@')[0].replace('.', '_')
     stageid=os.environ['JUSTIN_STAGE_ID']
     wfid=os.environ['JUSTIN_WORKFLOW_ID']

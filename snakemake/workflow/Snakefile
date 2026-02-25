@@ -1,36 +1,9 @@
-from viper import functions as utils
 module control:
     snakefile: "rules/control.smk"
 
-# config.setdefault("nfiles", "1")
-# config.setdefault("ProcessingStyle", "bulk")
 use rule * from control
-use rule jgf from control with:
-    params:
-        nfiles=config['nfiles']
-
 
 # This is the user-defined workflow and the main point-of-entry for users.
 # Needs to be provided
-middle_layer=config["UserWorkflow"]
-include: middle_layer
-
-def check_jgf(wildcards):
-    checkpoint_output = checkpoints.jgf.get().output[0]
-
-    output = []
-    jgf_instances = glob_wildcards(os.path.join('justin_input_files', 'justin_pfn_{iJGF}.txt')).iJGF
-    print(jgf_instances)
-    for tar in final_stages:
-        for out in tar.output:
-            output += expand(out, i=jgf_instances)
-        print(output)
-    if len(output) == 0:
-        return []
-    else:
-        return output + ['justin-processed-dids.txt']
-
-rule all:
-    input:
-        check_jgf
-
+user_workflow=config["UserWorkflow"]
+include: user_workflow

@@ -1,4 +1,11 @@
-from viper import functions as utils
+include: "../utils.smk"
+rule print_env:
+    output:
+        "env.txt"
+    shell:
+        "env | tee -a env.txt"
+
+
 checkpoint jgf:
     output:
         directory("justin_input_files")
@@ -36,18 +43,18 @@ rule combine_justin_inputs:
         dids="justin_input_dids.txt",
         pfns="justin_input_pfns.txt"
     input:
-        dids=utils.jgf_expand_names(
-            ['justin_input_files/justin_did_{iJGF}.txt'],
-            checkpoints,
-            expand,
-            glob_wildcards,
-        ),
-        pfns=utils.jgf_expand_names(
-            ['justin_input_files/justin_pfn_{iJGF}.txt'],
-            checkpoints,
-            expand,
-            glob_wildcards,
-        )
+        # dids=utils.jgf_expand_names(
+        #     ['justin_input_files/justin_did_{iJGF}.txt'],
+        #     expand,
+        #     glob_wildcards,
+        # ),
+        dids=expand_with_justin_files('justin_input_files/justin_did_{iJGF}.txt'),
+        pfns=expand_with_justin_files('justin_input_files/justin_pfn_{iJGF}.txt')
+        # pfns=utils.jgf_expand_names(
+        #     ['justin_input_files/justin_pfn_{iJGF}.txt'],
+        #     expand,
+        #     glob_wildcards,
+        # )
 
     shell:
         '''

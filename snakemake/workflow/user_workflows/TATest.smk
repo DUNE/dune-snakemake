@@ -1,8 +1,10 @@
-from viper import functions as utils
-import os
+include: "../utils.smk"
+
+
 module basic_lar:
     snakefile:
         "../rules/basiclar.smk"
+
 config.setdefault("n", "1")
 dunesw_prefix = """
     set +euo pipefail
@@ -18,7 +20,7 @@ dunesw_prefix = """
 
 rule make_threshold_fcl:
     input:
-        utils.local_file(workflow, "resources/run_ta_threshold_custom.fcl"),
+        local_file("resources/run_ta_threshold_custom.fcl"),
     output:
         "run_ta_threshold_custom_{thresh}M.fcl"
     shell:
@@ -27,46 +29,29 @@ rule make_threshold_fcl:
         """
 
 use rule run_lar_list_in_art_out from basic_lar as ta_threshold with:
-    output: "custom_ta_{thresh}_{iJGF}.root"
+    output:
+        "custom_ta_{thresh}_{iJGF}.root"
     benchmark: "bmk_{thresh}_{iJGF}"
     input:
-        # input_list=utils.justin_input_files,
         input_list="justin_input_files/justin_pfn_{iJGF}.txt",
         fcl="run_ta_threshold_custom_{thresh}M.fcl"
     shadow: 'shallow'
     params:
         prefix=dunesw_prefix,
-        n="10",
+        n="1",
         fcl=rules.make_threshold_fcl.output,
         extra="--no-timing --no-trace"
 
-justin_jobid, justin_stage, justin_wf = utils.get_justin_jobstage()
-
 rule multi_thresh:
     input:
-        utils.jgf_expand_names(
-            [f'custom_ta_{thresh}' + '_{iJGF}.root' for thresh in range(1,20)],
-            checkpoints,
-            expand,
-            glob_wildcards
-        )
+        input_with_justin_files('custom_ta_{thresh}_{iJGF}.root', thresh=[i for i in range(1,20)])
     output:
-        "custom_ta_merged_jjjustinjob_jsjustinstage_jwjustinwf.tar.gz".replace(
-            'justinjob', justin_jobid
-        ).replace(
-            'justinstage', justin_stage
-        ).replace('justinwf', justin_wf)
+        tag_justin_ids("custom_ta_merged_jobid_stageid_wfid.tar.gz")
     shell:
         """
         tar -czf {output} {input}
         """
 
-rule print_env:
-    output:
-        "env.txt"
-    shell:
-        "env | tee -a env.txt"
-
-final_stages = [
-    rules.multi_thresh
-]
+rule all:
+    input:
+        rules.multi_thresh.output

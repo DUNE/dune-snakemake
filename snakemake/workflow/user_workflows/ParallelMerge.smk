@@ -1,4 +1,5 @@
-from viper import functions as utils
+include: "../utils.smk"
+
 rule test:
     input:
         "justin_pfn_{i}.txt"
@@ -41,18 +42,13 @@ use rule run_lar_list_in_tfile_out from basic_lar as pdhdana with:
     params:
         prefix=dunesw_prefix,
         n="1",
-        fcl=utils.local_file(workflow, "resources/pdhd_ana_MC_nosce_noreco.fcl"),
+        fcl=local_file("resources/pdhd_ana_MC_nosce_noreco.fcl"),
         extra="--no-memcheck --no-timing --no-trace"
 
 rule merge:
     output: "merged.root"
     input:
-        utils.jgf_expand_names(
-            ['pdhdana_{iJGF}.root'],
-            checkpoints,
-            expand,
-            glob_wildcards
-        )
+        input_with_justin_files('pdhdana_{iJGF}.root')
     shell:
         '''
         set +euo pipefail
@@ -64,10 +60,6 @@ rule merge:
         hadd {output} {input}
         '''
 
-
-final_stages = [
-    #rules.test
-    # rules.gen_cosmics,
-    # rules.pdhdana
-    rules.merge
-]
+rule all:
+    input:
+        rules.merge.output
