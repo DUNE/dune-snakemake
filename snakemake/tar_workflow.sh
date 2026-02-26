@@ -1,7 +1,7 @@
 #/bin/bash
 tar \
     --exclude="workflow/benchmarks" \
-    --exclude="workflow/viper/__pycache__" \
+    --exclude="workflow/*/__pycache__" \
     --exclude="*pdf" \
     --exclude="*.snakemake" \
     --exclude="*cache" \

@@ -6,6 +6,10 @@ module basic_lar:
         "../rules/basiclar.smk"
 
 config.setdefault("n", "1")
+config.setdefault("threshold_low", 1)
+config.setdefault("threshold_high", 2)
+threshold_low = config['threshold_low']
+threshold_high = config['threshold_high']
 dunesw_prefix = """
     set +euo pipefail
     echo "Setting up dune UPS"
@@ -44,7 +48,9 @@ use rule run_lar_list_in_art_out from basic_lar as ta_threshold with:
 
 rule multi_thresh:
     input:
-        input_with_justin_files('custom_ta_{thresh}_{iJGF}.root', thresh=[i for i in range(1,20)])
+        input_with_justin_files(
+            'custom_ta_{thresh}_{iJGF}.root',
+            thresh=range(threshold_low, threshold_high))
     output:
         tag_justin_ids("custom_ta_merged_jobid_stageid_wfid.tar.gz")
     shell:
