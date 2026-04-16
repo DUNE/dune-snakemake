@@ -1,0 +1,121 @@
+#!/bin/bash
+
+stat /exp/dune/app/users/calcuttj/spack_snakemake
+
+echo "sourcing spack"
+source /cvmfs/dune.opensciencegrid.org/spack/v1.1/share/spack/setup-env.sh
+
+if [ $? -ne 0 ]; then
+  echo "Could not source spack"
+  exit 1
+fi
+
+which spack
+
+spack_env=${JustinSpackEnv:-"dune-sw-10_11_01d00-justin-01_06_00-prototype"}
+echo "Attempting to activate spack environment $spack_env"
+spack env activate $spack_env
+if [ $? -ne 0 ]; then
+  echo "Error: could not activate spack environment: $spack_env"
+  exit 1
+fi
+
+echo "Running justin-get-file loop external"
+
+mkdir justin_input_files/
+
+nfiles=0
+for i in `seq 1 ${SnakemakeNFiles:-1}`; do
+  echo $i
+  DID_PFN_RSE=`$JUSTIN_PATH/justin-get-file`
+
+  if [ "${DID_PFN_RSE}" == "" ] ; then
+    echo "Could not get file -- exiting loop"
+    break
+  fi
+
+  echo "did_pfn_rse: ${DID_PFN_RSE}"
+
+  did=$(echo $DID_PFN_RSE | cut -d' ' -f1)
+  pfn=$(echo $DID_PFN_RSE | cut -d' ' -f2)
+  echo $did > justin_input_files/justin_did_$i.txt
+  echo $pfn > justin_input_files/justin_pfn_$i.txt
+  nfiles=$(( nfiles + 1 ))
+done
+
+echo "Got $nfiles Files from justin"
+
+if [ $nfiles -eq 0 ]; then
+  echo "Got no files. Exiting safely"
+  exit 0
+fi
+
+
+
+
+Snakefile=${Snakefile:-"workflow/Snakefile"}
+echo $Snakefile
+
+if [ -z ${SnakemakeUseApptainer} ]; then
+  SnakemakeApptainerFlag=""
+else
+  SnakemakeApptainerFlag="--use-singularity "
+  echo "Will use singularity"
+fi
+
+if [ -n ${SnakemakeApptainerCleanEnv:-""} ]; then
+  SnakemakeApptainerFlag+="--singularity-args=\"--cleanenv\" "
+  echo "Appending --cleanenv"
+fi
+
+if [ -n ${SnakemakeConfig:-""} ]; then
+  SnakemakeOptions+="--configfile ${SnakemakeConfig} "
+  echo "Using ${SnakemakeConfig}"
+fi
+
+if [ -z ${SnakemakeVerbose} ]; then
+  SnakemakeOptions+="-q "
+fi
+
+# This doesn't really do anything because but it's useful as
+# an idea for potential later usage
+# SnakemakeExtraRules=""
+# if [ -n ${SnakemakePrintEnv:-""} ]; then
+#   SnakemakeExtraRules+=" print_env"
+# fi
+
+# echo \
+
+  snakemake_directive="""
+    --cores ${SnakemakeCores:-1} \
+    ${SnakemakeOptions} \
+    ${SnakemakeApptainerFlag} \
+    --config nfiles=${SnakemakeNFiles:-1} \
+             UserWorkflow=${UserWorkflow:-"user_workflows/ToInclude.smk"} \
+    --snakefile ${SnakemakeDir}/${Snakefile} \
+    all LogInputFiles
+  """
+  echo "running $snakemake_directive"
+  if [ -z $SnakemakeSkipDAG ]; then
+    python -m snakemake --dag $snakemake_directive > smk_dag.dot
+  fi
+  python -m snakemake $snakemake_directive
+  # python -m snakemake --cores ${SnakemakeCores:-1} \
+  # ${SnakemakeOptions} \
+  # ${SnakemakeApptainerFlag} \
+  # --config nfiles=${SnakemakeNFiles:-1} \
+  #   UserWorkflow=${UserWorkflow:-"ToInclude.smk"} \
+  # --snakefile ${SnakemakeDir}/${Snakefile} \
+  # all
+
+  snakemake_exit=$?
+  if [ $snakemake_exit -ne 0 ]; then
+    echo "Error in running snakemake. Exiting with ${snakemake_exit}"
+    exit ${snakemake_exit}
+  fi
+#
+
+echo "Done running snakemake"
+
+# did=$(echo ${DID_PFN_RSE} | cut -f1 -d' ')
+# echo $did > justin-processed-dids.txt
