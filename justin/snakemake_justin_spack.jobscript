@@ -1,24 +1,27 @@
 #!/bin/bash
 
-stat /exp/dune/app/users/calcuttj/spack_snakemake
+#stat /exp/dune/app/users/calcuttj/spack_snakemake
 
-echo "sourcing spack"
-source /cvmfs/dune.opensciencegrid.org/spack/v1.1/share/spack/setup-env.sh
+ echo "sourcing spack"
+#  source /cvmfs/dune.opensciencegrid.org/spack/v1.1/share/spack/setup-env.sh
+#  if [ $? -ne 0 ]; then
+#    echo "Could not source spack"
+#    exit 1
+#  fi
 
-if [ $? -ne 0 ]; then
-  echo "Could not source spack"
-  exit 1
-fi
+#  which spack
 
-which spack
+#  spack_env=${JustinSpackEnv:-"dune-sw-10_11_01d00-justin-01_06_00-prototype"}
+#  echo "Attempting to activate spack environment $spack_env"
+#  spack env activate $spack_env
+#  if [ $? -ne 0 ]; then
+#    echo "Error: could not activate spack environment: $spack_env"
+#    exit 1
+#  fi
 
-spack_env=${JustinSpackEnv:-"dune-sw-10_11_01d00-justin-01_06_00-prototype"}
-echo "Attempting to activate spack environment $spack_env"
-spack env activate $spack_env
-if [ $? -ne 0 ]; then
-  echo "Error: could not activate spack environment: $spack_env"
-  exit 1
-fi
+echo "Setting up env modules"
+. /exp/dune/data/users/calcuttj/profile
+module -I load snakemake/8.25.2-none-none-nuyppfd
 
 echo "Running justin-get-file loop external"
 
@@ -49,7 +52,6 @@ if [ $nfiles -eq 0 ]; then
   echo "Got no files. Exiting safely"
   exit 0
 fi
-
 
 
 
@@ -88,6 +90,7 @@ fi
 
   snakemake_directive="""
     --cores ${SnakemakeCores:-1} \
+    --use-envmodules \
     ${SnakemakeOptions} \
     ${SnakemakeApptainerFlag} \
     --config nfiles=${SnakemakeNFiles:-1} \
